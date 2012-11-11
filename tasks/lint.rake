@@ -18,12 +18,8 @@ namespace "lint" do
 
   desc "Run coverage"
   task :pycoverage => ["setup:lint"] do
-    #check_env_var(["WORKSPACE"])
-    #
     FileUtils.cd(CLIENT_CODE_DIR) do
-      output = File.join('.', "nosetests.xml")
-      sh("nosetests -v --with-xunit --xunit-file=#{output} --with-coverage --cover-package=.")
-    #  #sh("coverage xmli --omit=* --include=wgen/fssclient")
+      sh("nosetests -v --with-coverage --cover-package=src")
       notice("coverage passed")
     end
   end
