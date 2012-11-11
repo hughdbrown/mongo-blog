@@ -1,0 +1,132 @@
+#
+# The rakefile for QSTK.
+#
+
+require 'find'
+require 'rake/clean'
+
+CLIENT_CODE_DIR='src'
+CLIENT_TEST_DIR='tests'
+
+# Load other rake tasks
+Dir.glob('tasks/*.rake') {|f| load(f) }
+
+#-----------------------------------------------------
+# Helper methods
+#-----------------------------------------------------
+def highlight(message, length=nil)
+  stars = '*' * ((length or message.length) + 4)
+  lines = ["", stars, "* #{message} *", stars, "", ""]
+  return lines.join("\n")
+end
+
+def notice(message)
+  $stderr.puts highlight(message)
+end
+
+def check_env_var(variables)
+  missing = variables.find_all { |v| ENV[v] == nil }
+  unless missing.empty?
+    raise "The following variables are missing and are needed to run this script: #{missing.join(', ')}."
+  end
+end
+
+#-----------------------------------------------------
+# Installation helper methods
+#-----------------------------------------------------
+TARCMD = {
+  "tar.gz" => "xvfz",
+  "tar.bz2" => "xvfj"
+}
+
+def install_pkg(apps)
+  notice("Installing #{apps.join(' ')}")
+  sh("sudo apt-get -y install #{apps.join(' ')}")
+end
+
+def remove_pkg(apps)
+  notice("Removing #{apps.join(' ')}")
+  sh("sudo apt-get -y remove #{apps.join(' ')}")
+end
+
+def install_ppa(ppa)
+  sh("sudo add-apt-repository \"#{ppa}\" && sudo apt-get update")
+  notice("Installed ppa #{ppa}")
+end
+
+def install_gems(gems)
+  all_gems = "#{gems.sort.join(' ')}"
+  sh("sudo gem install #{all_gems}")
+  notice("Installed #{all_gems}")
+end
+
+def upgrade_gems(gems)
+  all_gems = "#{gems.sort.join(' ')}"
+  sh("sudo gem install -u #{all_gems}")
+  notice("Upgraded #{all_gems}")
+end
+
+def _download_tar(url, tarfile, tarcmd="xvfz")
+  notice("Downloading tarfile #{tarfile}")
+  sh("wget #{url} -O #{tarfile}") unless File.exists?(tarfile)
+
+  notice("Untarring tarfile #{tarfile}")
+  sh("tar #{tarcmd} #{tarfile}") if File.exists?(tarfile)
+end
+
+def download_tar(url, version, target, ext="tar.gz", dir="/tmp")
+  tarfile = "#{version}.#{ext}"
+  tarcmd = TARCMD[ext]
+  pwd = FileUtils.pwd()
+
+  FileUtils.cd(dir) do
+    begin
+      _download_tar(url, tarfile, tarcmd)
+    ensure
+      FileUtils.mv(target, pwd, :verbose => true) if File.exists?(target)
+      FileUtils.rm(tarfile, :verbose => true) if File.exists?(tarfile)
+    end
+  end
+end
+
+def install_tar(url, version, ext="tar.gz", dir="/tmp")
+  tarfile = "#{version}.#{ext}"
+  tarcmd = TARCMD[ext]
+  notice("Installing tarfile #{tarfile}")
+  FileUtils.cd(dir) do
+    begin
+      _download_tar(url, tarfile, tarcmd)
+
+      FileUtils.cd(version) do
+        sh("./configure") if File.exists?("configure")
+        sh("make && sudo make install") unless Dir.glob("[Mm]akefile").empty?
+      end
+    ensure
+      FileUtils.rm(tarfile, :verbose => true)
+    end
+  end
+end
+
+def install_deb(url, debfile, dir="/tmp")
+  notice("Installing debfile #{debfile}")
+  begin
+    FileUtils.cd(dir) do
+      sh("wget #{url} -O #{debfile} && sudo dpkg -i #{debfile}")
+    end
+  ensure
+    FileUtils.rm(debfile) if File.exists?(debfile)
+  end
+end
+
+def pip_install_pkg(pkg)
+  notice("pip-installing #{pkg.join(' ')}")
+  sh("sudo pip install #{pkg.join(' ')}")
+end
+
+
+
+# Add 'rake clean' task
+CLEAN.include(
+    Dir.glob(File.join(CLIENT_CODE_DIR, '*.pyc')), 
+    Dir.glob(File.join(CLIENT_TEST_DIR, '*', '*.pyc')),
+)
