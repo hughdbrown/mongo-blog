@@ -8,8 +8,8 @@ import re
 import datetime
 from itertools import ifilter
 
-from database import blog_connection
-import user
+from src.database import blog_connection
+import src.user as user
 
 
 # inserts the blog entry and returns a permalink for the entry
