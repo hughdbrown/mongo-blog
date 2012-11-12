@@ -1,10 +1,11 @@
 
 from random import choice
 import re
+# pylint: disable: W0402
 from string import ascii_letters
 
 from unittest2 import TestCase
-from nose.tools import assert_equal, assert_raises, raises, assert_true
+from nose.tools import assert_true
 
 import pymongo
 import requests
@@ -24,18 +25,17 @@ def create_user(username, password):
             users = connection.blog.users
             user = users.find_one({'_id': username})
 
-        if user is None:
+        if not user:
             print "Could not find the test user %s in the users collection." % username
         else:
             print "Found the test user %s in the users collection" % username
     
             # check that the user has been built
-            expr = re.compile(r"Welcome\s+%s" % username)
-            if expr.search(response.text):
+            if re.match(r"Welcome\s+%s" % username, response.text):
                 return True
             
             print "When we tried to create a user, here is the output we got\n"
-            print request.text
+            print response.text
     except Exception:
         print "the request to ", url, " failed, so your blog may not be running."
     return False
@@ -50,8 +50,7 @@ def try_to_login(username, password):
         response = requests.post(url=url, data=payload)
 
         # check for successful login
-        expr = re.compile(r"Welcome\s+%s" % username)
-        if expr.search(response.text):
+        if re.match(r"Welcome\s+%s" % username, response.text):
             return True
         else:
             print "When we tried to login, here is the output we got\n"
