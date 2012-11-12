@@ -388,5 +388,10 @@ def present_welcome():
     return bottle.template("welcome", {'username': username})
 
 
-bottle.debug(True)
-bottle.run(host='localhost', port=8082)
+def main():
+    bottle.debug(True)
+    bottle.run(host='localhost', port=8082)
+
+
+if __name__ == '__main__':
+    main()
