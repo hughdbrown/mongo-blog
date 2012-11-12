@@ -31,7 +31,7 @@ def create_user(username, password):
             print "Found the test user %s in the users collection" % username
     
             # check that the user has been built
-            if re.match(r"Welcome\s+%s" % username, response.text):
+            if re.search(r"Welcome\s+%s" % username, response.text):
                 return True
             
             print "When we tried to create a user, here is the output we got\n"
@@ -50,7 +50,7 @@ def try_to_login(username, password):
         response = requests.post(url=url, data=payload)
 
         # check for successful login
-        if re.match(r"Welcome\s+%s" % username, response.text):
+        if re.search(r"Welcome\s+%s" % username, response.text):
             return True
         else:
             print "When we tried to login, here is the output we got\n"
