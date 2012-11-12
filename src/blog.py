@@ -1,12 +1,12 @@
 from __future__ import print_function
 
-import bottle
-from pymongo import DESCENDING
-
 import cgi
 import re
 import datetime
 from itertools import ifilter
+
+import bottle
+from pymongo import DESCENDING
 
 from src.database import blog_connection
 import src.user as user
