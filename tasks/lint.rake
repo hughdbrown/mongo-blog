@@ -19,7 +19,7 @@ namespace "lint" do
   desc "Run coverage"
   task :pycoverage => ["setup:lint"] do
     FileUtils.cd(CLIENT_CODE_DIR) do
-      sh("nosetests -v --with-coverage --cover-package=src")
+      sh("nosetests -v --with-coverage --cover-erase --cover-package=src")
       notice("coverage passed")
     end
   end
